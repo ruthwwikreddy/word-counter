@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Word Counter Tool</title>
+    <style>
+        body {
+            font-family: system-ui;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .stat-box {
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        .stat-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 0.5rem;
+            margin: 1rem 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        .highlight-box {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+        .words-blue { background: #e0f2fe; }
+        .words-green { background: #dcfce7; }
+        .words-purple { background: #f3e8ff; }
+        .words-yellow { background: #fef9c3; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Word Counter Tool</h1>
+        <textarea id="textInput" placeholder="Enter your text here..."></textarea>
+        
+        <div class="stats-grid">
+            <div class="stat-box words-blue">
+                <div class="stat-label">Total Words</div>
+                <div class="stat-value" id="wordCount">0</div>
+            </div>
+            <div class="stat-box words-green">
+                <div class="stat-label">Unique Words</div>
+                <div class="stat-value" id="uniqueWords">0</div>
+            </div>
+            <div class="stat-box words-purple">
+                <div class="stat-label">Characters</div>
+                <div class="stat-value" id="charCount">0</div>
+            </div>
+            <div class="stat-box words-yellow">
+                <div class="stat-label">Reading Time</div>
+                <div class="stat-value" id="readingTime">0 min</div>
+            </div>
+        </div>
+
+        <button id="highlightBtn">Show Highlights</button>
+        <div id="highlights" style="display: none;"></div>
+    </div>
+
+    <script>
+        const textInput = document.getElementById('textInput');
+        const highlightBtn = document.getElementById('highlightBtn');
+        const highlights = document.getElementById('highlights');
+        let showingHighlights = false;
+
+        function updateCounts() {
+            const text = textInput.value;
+            const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+            const uniqueWordCount = new Set(words.map(w => w.toLowerCase())).size;
+
+            document.getElementById('wordCount').textContent = words.length;
+            document.getElementById('uniqueWords').textContent = uniqueWordCount;
+            document.getElementById('charCount').textContent = text.length;
+            document.getElementById('readingTime').textContent = 
+                Math.ceil(words.length / 200) + ' min';
+        }
+
+        function findSpecialWords() {
+            const text = textInput.value;
+            const words = text.split(/\s+/);
+            const longWords = words.filter(word => word.length > 8);
+            
+            const wordCount = {};
+            words.forEach(word => {
+                const lower = word.toLowerCase();
+                wordCount[lower] = (wordCount[lower] || 0) + 1;
+            });
+            const repetitive = Object.entries(wordCount)
+                .filter(([word, count]) => count > 2 && word.length > 0)
+                .map(([word]) => word);
+
+            let html = '';
+            if (longWords.length) {
+                html += `<div class="highlight-box">
+                    <strong>Long words (>8 characters):</strong><br>
+                    ${longWords.join(', ')}
+                </div>`;
+            }
+            if (repetitive.length) {
+                html += `<div class="highlight-box">
+                    <strong>Repetitive words (used >2 times):</strong><br>
+                    ${repetitive.join(', ')}
+                </div>`;
+            }
+            highlights.innerHTML = html;
+        }
+
+        textInput.addEventListener('input', () => {
+            updateCounts();
+            if (showingHighlights) findSpecialWords();
+        });
+
+        highlightBtn.addEventListener('click', () => {
+            showingHighlights = !showingHighlights;
+            highlights.style.display = showingHighlights ? 'block' : 'none';
+            highlightBtn.textContent = showingHighlights ? 'Hide Highlights' : 'Show Highlights';
+            if (showingHighlights) findSpecialWords();
+        });
+    </script>
+</body>
+</html>
